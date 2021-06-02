@@ -22,34 +22,35 @@ export default {
   components: { info },
   beforeDestroy() {},
   methods: {
-    init() {
-      // let viewerOption = {
-      //   geocoder: false, // 地理位置查询定位控件
-      //   homeButton: false, // 默认相机位置控件
-      //   timeline: false, // 时间滚动条控件
-      //   navigationHelpButton: false, // 默认的相机控制提示控件
-      //   fullscreenButton: false, // 全屏控件
-      //   scene3DOnly: true, // 每个几何实例仅以3D渲染以节省GPU内存
-      //   baseLayerPicker: false, // 底图切换控件
-      //   animation: false // 控制场景动画的播放速度控件
-      // };
-      // let viewer = new Cesium.Viewer(this.$el, viewerOption);
+    leftClick(e) {
+      try {
+        // 获取经纬度信息
+        this.footerViewer = this.findComponentDownward(this, "info");
+        var lonLatAlt = this.footerViewer.lonLatAlt;
 
+        this.$store.commit("set_sys_info", {
+          type: "info",
+          msg: `
+        当前点击位置经纬度为：${this.footerViewer.lonLatAlt[0]},${this.footerViewer.lonLatAlt[1]}
+      `,
+        });
+      } catch (error) {}
+    },
+    init() {
+      // 初始化CISIUM实列
       this.viewerDefaultProperty = {
         requestRenderMode: true,
-        animation: false,
-        timeline: false,
+        animation: false, // 控制场景动画的播放速度控件
+        timeline: false, // 时间滚动条控件
         geocoder: false, //是否显示geocoder小器件，右上角查询按钮
-        homeButton: false,
-        navigationHelpButton: false,
-        baseLayerPicker: false,
+        homeButton: false, // 默认相机位置控件
+        navigationHelpButton: false, // 默认的相机控制提示控件
+        baseLayerPicker: false, // 底图切换控件
         fullscreenElement: "cesiumContainer",
         fullscreenButton: false,
         shouldAnimate: true,
-
         // shouldAnimate: false,
         // clockViewModel: new Cesium.ClockViewModel(clockT),
-
         infoBox: false,
         selectionIndicator: false,
         sceneModePicker: false,
@@ -71,7 +72,7 @@ export default {
           url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
         }),
 
-        //
+        // 使用离线地图
         // imageryProvider: new Cesium.UrlTemplateImageryProvider({
         //   url: 'http://localhost:233/{z}/{x}/{reverseY}.png',
         //   fileExtension: "png"
@@ -86,13 +87,16 @@ export default {
       Cesium.Ion.defaultAccessToken =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2YmM5NzUzMC1kZDU4LTQ0ZDAtYmJiZC1kZjVjZDI5NjI2ZjIiLCJpZCI6MTM1MTQsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NjM0MTU0ODZ9.EvJQ4fnRJn98ZRo6bG-ThXouP72id7nR7jP-_yIpOOg";
 
+      // 将viewer挂载至window对象，如果放入data中，会占用大量内存，而且帧率降低
       window.viewer = new Cesium.Viewer("cesiumContainer", this.viewerDefaultProperty);
-      // let viewer = new Cesium.Viewer(this.$el, viewerOption);
 
       viewer._cesiumWidget._creditContainer.style.display = "none"; // 隐藏版权
 
+      // cesium实例加载完成，添加底部经纬度检测
       this.footerViewer = this.findComponentDownward(this, "info");
       this.footerViewer.OnInit();
+
+      // 视角飞入
       viewer.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(112.876542, 28.237326, 1800),
         orientation: {
@@ -103,8 +107,12 @@ export default {
         duration: 1.5,
       });
 
+      viewer.screenSpaceEventHandler.setInputAction((e) => {
+        this.leftClick(e);
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-      var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(112.876542,28.237326, 2.0)); 
+      // 模型加载
+      var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(112.876542, 28.237326, 2.0));
       //gltf数据加载位置
       var model = viewer.scene.primitives.add(
         Cesium.Model.fromGltf({

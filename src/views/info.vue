@@ -7,17 +7,20 @@
       <div id="cameraHeight"><span>纬度：</span>{{ lonLatAlt[1] || 0 }}°</div>
       <div>{{ lonLatAlt[0] }},{{ lonLatAlt[1] }}</div>
     </div>
-    <div id="sysInfo">
-      <div
-        class="info warning"
-        :class="{ warning: v.type == 'warning', battle: v.type == 'battle', win: v.type == 'win', trophy: v.type == 'trophy' }"
-        v-for="(v, k) in sysInfo"
-        :key="k"
-      >
-        系统<i style="font-size:.12rem" v-if="v.time">({{ v.time }})</i>：
-        <span>{{ v.msg }}</span>
-      </div>
+    <div class="sysInfo">
+      <div id="sysInfo">
+        <div
+          class="info warning"
+          :class="{ warning: v.type == 'warning', battle: v.type == 'battle', win: v.type == 'win', trophy: v.type == 'trophy' }"
+          v-for="(v, k) in sysInfo"
+          :key="k"
+        >
+          提示<i style="font-size:.12rem" v-if="v.time">({{ v.time }})</i>：
+          <span>{{ v.msg }}</span>
+        </div>
+      </div>  
     </div>
+    
   </div>
 </template>
 <script>
@@ -89,7 +92,7 @@ export default {
 #footer {
   position: fixed;
   bottom: 0;
-  left: 400px;
+  left: 450px;
   width: auto;
   height: 20px;
   padding: 10px 20px;
@@ -105,45 +108,50 @@ export default {
     text-shadow: 1px 1px 2px #000;
   }
 }
-#sysInfo {
+.sysInfo{
   border-top-right-radius: 10px;
   box-shadow: 0 0 10px 1px rgba($color: #000000, $alpha: 0.5);
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 400px;
+  width: 450px;
   height: 500px;
   padding: 10px;
   z-index: 10;
+  background: rgba($color: #000000, $alpha: 0.6);
+}
+#sysInfo {
+  width:100%;
+  height: 100%;
   overflow-y: auto;
   transition: 0.2s;
   display: flex;
-  background: rgba($color: #000000, $alpha: 0.5);
+  
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   *{
     color:#fff;
   }
+  span{
+    color:rgb(197, 197, 197);
+    text-shadow: 0px 0px 1px #fff;
+    font-size: 13px;
+    line-height: 22px;
+    height:22px;
+  }
   .info {
-    margin: 0.03rem 0;
+    margin: 3px 0;
+    line-height: 22px;
   }
-  a {
-    cursor: pointer;
-    text-decoration: underline;
-    margin-left: 0.05rem;
+  .warning > span {
+    color: #ff6a6a;
   }
-  // .warning > span {
-  //   color: #f90202;
-  // }
-  // .battle > span {
-  //   color: #de8618;
-  // }
-  // .win > span {
-  //   color: #24c4de;
-  // }
-  // .trophy > span {
-  //   color: #2fe20f;
-  // }
+  .info > span {
+    color: #f5f5f5;
+  }
+  .success > span {
+    color: #70f358;
+  }
 }
 </style>
