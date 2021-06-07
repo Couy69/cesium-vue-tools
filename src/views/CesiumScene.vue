@@ -1,5 +1,6 @@
 <template>
   <div class="full">
+    <handle></handle>
     <info></info>
     <div id="cesiumContainer"></div>
   </div>
@@ -9,6 +10,7 @@
 import "cesium/Widgets/widgets.css";
 import * as Cesium from "cesium/Cesium";
 import info from "./info.vue";
+import handle from "./handle.vue";
 import { assist } from "@/assets/js/assist";
 export default {
   name: "CesiumScene",
@@ -19,7 +21,7 @@ export default {
   mounted() {
     this.init();
   },
-  components: { info },
+  components: { info, handle },
   beforeDestroy() {},
   methods: {
     leftClick(e) {
@@ -31,10 +33,39 @@ export default {
         this.$store.commit("set_sys_info", {
           type: "info",
           msg: `
-        当前点击位置经纬度为：${this.footerViewer.lonLatAlt[0]},${this.footerViewer.lonLatAlt[1]}
-      `,
+          当前点击位置经纬度为：${this.footerViewer.lonLatAlt[0]},${this.footerViewer.lonLatAlt[1]}
+        `,
         });
-      } catch (error) {}
+
+        var pickedFeature = null;
+        pickedFeature = viewer.scene.pick(e.position);
+        if (!pickedFeature) {
+          return;
+        }
+        console.log(pickedFeature.primitive);
+        console.log(pickedFeature.primitive.constructor.name);
+        if (pickedFeature.primitive.constructor.name == "Model") {
+          console.log("当前点击为Model", pickedFeature.primitive);
+          this.$store.commit("set_sys_info", {
+            type: "info",
+            msg: `
+              当前鼠标点击对象为Model,id : ${pickedFeature.primitive.id}
+            `,
+          });
+        } else if (pickedFeature.primitive.constructor.name == "Primitive") {
+          console.log("当前点击为Primitive", pickedFeature.primitive._instanceIds);
+          this.$store.commit("set_sys_info", {
+            type: "info",
+            msg: `
+              当前鼠标点击对象为Entity,id : ${pickedFeature.primitive._instanceIds[0].id}
+            `,
+          });
+        }else{
+
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
     init() {
       // 初始化CISIUM实列
@@ -111,17 +142,71 @@ export default {
         this.leftClick(e);
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
+      viewer.scene.globe.enableLighting = false; //关闭光照
+      viewer.shadows = false; //关闭阴影
+
       // 模型加载
       var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(112.876542, 28.237326, 2.0));
       //gltf数据加载位置
       var model = viewer.scene.primitives.add(
         Cesium.Model.fromGltf({
+          id:'test_cube1',
           url: "./gltf/cube.gltf", //如果为bgltf则为.bgltf
           modelMatrix: modelMatrix,
           scale: 1.0, //放大倍数
         })
       );
 
+      var videoElement = document.createElement("video");
+      videoElement.src = "./1.mp4";
+      videoElement.loop = true;
+      videoElement.muted = true;
+      videoElement.className = "tempVideo";
+      videoElement.style.opacity = 0.1;
+      videoElement.play();
+      console.log(videoElement);
+      var cyanPolygon = viewer.entities.add({
+        name: "Cyan vertical polygon with per-position heights and outline",
+        id: 'test_entity',
+        name: "cameraEntity",
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights([
+            112.875031,
+            28.235836,
+            200,
+            112.87527,
+            28.235949,
+            250,
+            112.87606,
+            28.235854,
+            300,
+            112.877318,
+            28.235844,
+            300,
+            112.877856,
+            28.235943,
+            250,
+            112.878163,
+            28.235895,
+            200,
+            112.878163,
+            28.235895,
+            10,
+            112.875031,
+            28.235836,
+            10,
+          ]),
+          perPositionHeight: true,
+          alpha: 0.2,
+          material: videoElement,
+          // material: new Cesium.ImageMaterialProperty({
+          //   image: videoElement,
+          //   transparent: true,
+          //   alpha: 0.2,
+          // }),
+          stRotation: Cesium.Math.toRadians(0),
+        },
+      });
       // 112.876542,28.237326
     },
   },
@@ -142,5 +227,14 @@ export default {
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+#testVideo {
+  width: 320px;
+  height: 200px;
+  position: fixed;
+  z-index: 11;
+  top: 0;
+  transform: rotate3d(2, -1, -1, -0.2turn);
 }
 </style>
