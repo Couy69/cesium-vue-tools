@@ -158,12 +158,6 @@ export default {
 
       viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(112.872422,28.241525, 35),
-        // scale:false,
-        // billboard: {
-        //   image: "static/images/icon/m4.png",
-        //   width: 30,
-        //   height: 30
-        // },
         label: {
           text: "地图标记相关：",
           font: '16pt Source Han Sans CN',    //字体样式
@@ -193,21 +187,6 @@ export default {
           pixelOffset: new Cesium.Cartesian2(5, -50)
         }
       });
-
-      var a = document.getElementsByClassName('nameContainer'),b='';
-      for(let i = 0;i<a.length;i++){
-        if(i<148&&document.getElementsByClassName(' colorSwath')[i-1]){
-          b+=a[i].innerText+' <font color='+document.getElementsByClassName(' colorSwath')[i-1].attributes[1].nodeValue+' size=5>███████</font>'
-        }
-      }
-      console.log(b)
-
-        // a[i].innerText,document.getElementsByClassName(' colorSwath')[i].attributes[1].nodeValue
-
-// b+=
-        // `
-        //  ${a[i].innerText},<font color=${document.getElementsByClassName(' colorSwath')[i].attributes[1].nodeValue} size=5>███████</font>
-        // `
 
       viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(112.872439,28.234732, 35),
