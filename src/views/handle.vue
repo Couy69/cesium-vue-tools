@@ -3,7 +3,8 @@
     <div id="handle">
       <div class="cate">
         <div class="title">地图相关</div>
-        <div class="btn"></div>
+        <div class="btn">模型加载</div>
+        <div class="btn">设置entitys</div>
       </div>
     </div>
   </div>

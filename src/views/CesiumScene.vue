@@ -60,8 +60,7 @@ export default {
               当前鼠标点击对象为Entity,id : ${pickedFeature.primitive._instanceIds[0].id}
             `,
           });
-        }else{
-
+        } else {
         }
       } catch (error) {
         console.log(error);
@@ -150,13 +149,81 @@ export default {
       //gltf数据加载位置
       var model = viewer.scene.primitives.add(
         Cesium.Model.fromGltf({
-          id:'test_cube1',
+          id: "test_cube1",
           url: "./gltf/cube.gltf", //如果为bgltf则为.bgltf
           modelMatrix: modelMatrix,
-          scale: 1.0, //放大倍数
+          scale: 2.0, //放大倍数
         })
       );
 
+      viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(112.872422,28.241525, 35),
+        // scale:false,
+        // billboard: {
+        //   image: "static/images/icon/m4.png",
+        //   width: 30,
+        //   height: 30
+        // },
+        label: {
+          text: "地图标记相关：",
+          font: '16pt Source Han Sans CN',    //字体样式
+          fillColor: Cesium.Color.WHITE,        //字体颜色
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,        //label样式
+          outlineWidth: 4.5,
+          verticalOrigin: Cesium.VerticalOrigin.TOP,
+          pixelOffset: new Cesium.Cartesian2(0, 0)
+        }
+      });
+
+      viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(112.87235,28.240632, 60),
+        scale:false,
+        billboard: {
+          image: "./img/mark-warning.png",
+          width: 50,
+          height: 50
+        },
+        label: {
+          text: "warning",
+          font: '16pt Source Han Sans CN',    //字体样式
+          fillColor: Cesium.Color.WHITE,        //字体颜色
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,        //label样式
+          outlineWidth: 4.5,
+          verticalOrigin: Cesium.VerticalOrigin.TOP,
+          pixelOffset: new Cesium.Cartesian2(5, -50)
+        }
+      });
+
+      var a = document.getElementsByClassName('nameContainer'),b='';
+      for(let i = 0;i<a.length;i++){
+        if(i<148&&document.getElementsByClassName(' colorSwath')[i-1]){
+          b+=a[i].innerText+' <font color='+document.getElementsByClassName(' colorSwath')[i-1].attributes[1].nodeValue+' size=5>███████</font>'
+        }
+      }
+      console.log(b)
+
+        // a[i].innerText,document.getElementsByClassName(' colorSwath')[i].attributes[1].nodeValue
+
+// b+=
+        // `
+        //  ${a[i].innerText},<font color=${document.getElementsByClassName(' colorSwath')[i].attributes[1].nodeValue} size=5>███████</font>
+        // `
+
+      viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(112.872439,28.234732, 35),
+        // },
+        label: {
+          text: "视频作为贴图：",
+          font: '16pt Source Han Sans CN',    //字体样式
+          fillColor: Cesium.Color.WHITE,        //字体颜色
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,        //label样式
+          outlineWidth: 4.5,
+          verticalOrigin: Cesium.VerticalOrigin.TOP,
+          pixelOffset: new Cesium.Cartesian2(0, 0)
+        }
+      });
+
+      // 视频贴图entity
       var videoElement = document.createElement("video");
       videoElement.src = "./1.mp4";
       videoElement.loop = true;
@@ -167,34 +234,18 @@ export default {
       console.log(videoElement);
       var cyanPolygon = viewer.entities.add({
         name: "Cyan vertical polygon with per-position heights and outline",
-        id: 'test_entity',
+        id: "test_entity",
         name: "cameraEntity",
         polygon: {
           hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights([
-            112.875031,
-            28.235836,
-            200,
-            112.87527,
-            28.235949,
-            250,
-            112.87606,
-            28.235854,
-            300,
-            112.877318,
-            28.235844,
-            300,
-            112.877856,
-            28.235943,
-            250,
-            112.878163,
-            28.235895,
-            200,
-            112.878163,
-            28.235895,
-            10,
-            112.875031,
-            28.235836,
-            10,
+            112.871437,28.234432,
+            5,
+            112.871442,28.232811,
+            5,
+            112.874246,28.232824,
+            5,
+            112.874237,28.234428,
+            5,
           ]),
           perPositionHeight: true,
           alpha: 0.2,
