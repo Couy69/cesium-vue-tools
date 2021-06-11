@@ -17,9 +17,8 @@
           提示<i style="font-size:.12rem" v-if="v.time">({{ v.time }})</i>：
           <span>{{ v.msg }}</span>
         </div>
-      </div>  
+      </div>
     </div>
-    
   </div>
 </template>
 <script>
@@ -35,7 +34,6 @@ export default {
     polygonNode: {
       default: true,
     },
-    
   },
   data() {
     return {
@@ -68,20 +66,96 @@ export default {
         } else {
           this.lonLatAlt = [];
         }
+
+        if (window.tabDot) {
+          this.$store.commit("set_sys_info", {
+            type: "info",
+            msg: `
+            当前点击位置经纬度为：${this.lonLatAlt[0]},${this.lonLatAlt[1]}
+          `,
+          });
+          this.dotMove();
+          this.entityMovePositonByDot(window.tabDot.parentEntityId, window.tabDot.tabIndex);
+        }
       }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+    },
+    //经纬度转笛卡尔坐标
+    positionToCartesian3(position) {
+      // position  [经度，纬度，高度]
+      var ellipsoid = viewer.scene.globe.ellipsoid;
+
+      var cartographic = Cesium.Cartographic.fromDegrees(position[0], position[1], position[2]);
+
+      var cartesian3 = ellipsoid.cartographicToCartesian(cartographic);
+      return cartesian3;
+    },
+    //笛卡尔坐标转纬经度
+    Cartesian3ToPosition(c1, c2, c3) {
+      var ellipsoid = viewer.scene.globe.ellipsoid;
+
+      var cartesian3 = new Cesium.Cartesian3(c1, c2, c3);
+
+      var cartographic = ellipsoid.cartesianToCartographic(cartesian3);
+      var lat = +Cesium.Math.toDegrees(cartographic.latitude).toFixed(6); //纬度
+
+      var lng = +Cesium.Math.toDegrees(cartographic.longitude).toFixed(6); //经度
+      var alt = +cartographic.height.toFixed(1); //高度
+      return [lat, lng, alt];
+    },
+    dotMove() {
+      var p = tabDot._position._value;
+      var iniHeight = this.Cartesian3ToPosition(p.x, p.y, p.z)[2];
+      window.tabDot._position.setValue(this.positionToCartesian3([this.lonLatAlt[0], this.lonLatAlt[1], iniHeight]));
+    },
+    entityMovePositonByDot(entityId, tabIndex) {
+      var entity = viewer.entities.getById(entityId);
+      var p = tabDot._position._value;
+      var iniHeight = this.Cartesian3ToPosition(p.x, p.y, p.z)[2];
+      if (entityId && entity) {
+        var h = entity.polygon.hierarchy._value.positions;
+        switch (tabIndex) {
+          case 0:
+            entity.polygon.hierarchy.setValue({
+              holes: [],
+              positions: [this.positionToCartesian3([this.lonLatAlt[0], this.lonLatAlt[1], iniHeight]), h[1], h[2], h[3]],
+            });
+            break;
+          case 1:
+            entity.polygon.hierarchy.setValue({
+              holes: [],
+              positions: [h[0], this.positionToCartesian3([this.lonLatAlt[0], this.lonLatAlt[1], iniHeight]), h[2], h[3]],
+            });
+            break;
+          case 2:
+            entity.polygon.hierarchy.setValue({
+              holes: [],
+              positions: [h[0], h[1], this.positionToCartesian3([this.lonLatAlt[0], this.lonLatAlt[1], iniHeight]), h[3]],
+            });
+            break;
+          case 3:
+            entity.polygon.hierarchy.setValue({
+              holes: [],
+              positions: [h[0], h[1], h[2], this.positionToCartesian3([this.lonLatAlt[0], this.lonLatAlt[1], iniHeight])],
+            });
+            break;
+          default:
+            break;
+        }
+        // console.log(this.Cartesian3ToPosition(h[0].x,h[0].y,h[0].z).join(',')+','+this.Cartesian3ToPosition(h[1].x,h[1].y,h[1].z).join(',')+','+this.Cartesian3ToPosition(h[2].x,h[2].y,h[2].z).join(',')+','+this.Cartesian3ToPosition(h[3].x,h[3].y,h[3].z).join(','))
+      }
     },
   },
   watch: {
     sysInfo() {
-      var element = document.getElementById('sysInfo')
+      var element = document.getElementById("sysInfo");
       //渲染完成后滚至最下端
       this.$nextTick(() => {
-        element.scrollTop = element.scrollHeight + 20
-      })
+        element.scrollTop = element.scrollHeight + 20;
+      });
     },
   },
   mounted() {
-    this.sysInfo = this.$store.state.sysInfo
+    this.sysInfo = this.$store.state.sysInfo;
     // this.OnInit();
   },
 };
@@ -102,12 +176,12 @@ export default {
   * {
     color: #fff;
   }
-  &>div{
-    margin:0 10px;
+  & > div {
+    margin: 0 10px;
     text-shadow: 1px 1px 2px #000;
   }
 }
-.sysInfo{
+.sysInfo {
   border-top-right-radius: 10px;
   box-shadow: 0 0 10px 1px rgba($color: #000000, $alpha: 0.5);
   position: fixed;
@@ -120,24 +194,24 @@ export default {
   background: rgba($color: #000000, $alpha: 0.6);
 }
 #sysInfo {
-  width:100%;
+  width: 100%;
   height: 100%;
   overflow-y: auto;
   transition: 0.2s;
   display: flex;
-  
+
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  *{
-    color:#fff;
+  * {
+    color: #fff;
   }
-  span{
-    color:rgb(197, 197, 197);
+  span {
+    color: rgb(197, 197, 197);
     text-shadow: 0px 0px 1px #fff;
     font-size: 13px;
     line-height: 22px;
-    height:22px;
+    height: 22px;
   }
   .info {
     margin: 3px 0;
