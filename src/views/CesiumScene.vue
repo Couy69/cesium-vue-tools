@@ -3,6 +3,19 @@
     <handle></handle>
     <info></info>
     <div id="cesiumContainer"></div>
+    <div id="dialog" class="bubble" v-show="dialogshow">
+      <!--class="bubble"-->
+      <div id="tools" style="text-align : right">
+        <span style="color: rgb(95, 74, 121);padding: 5px;position: absolute;left: 10px;top: 4px;">对象属性</span>
+        <span class="fui-export" id="bubblePosition" style="color: darkgrey; padding:5px" title="停靠"></span>
+        <span class="fui-cross" title="关闭" id="close" style="color: darkgrey;padding:5px"></span>
+      </div>
+      <div style="overflow-y:scroll;height:190px" id="tableContainer">
+        <table id="tab">
+          test
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -19,9 +32,14 @@ import { patrolExample } from "@/assets/js/patrolExample";
 export default {
   name: "CesiumScene",
   data() {
-    return {};
+    return {
+      dialogshow: false,
+      initialPosition: {},
+      movePosition: {},
+      cartesian:{},
+    };
   },
-  mixins: [assist,eventHandle,modelLoad,entityLoad,patrolExample],
+  mixins: [assist, eventHandle, modelLoad, entityLoad, patrolExample],
   mounted() {
     this.init();
   },
@@ -85,14 +103,13 @@ export default {
       viewer._cesiumWidget._creditContainer.style.display = "none"; // 隐藏版权
 
       viewer.enableLighting = true;
-      
-      if(_Gconfig.needDirectionalLight){
+
+      if (!_Gconfig.needDirectionalLight) {
         // DirectionalLight 表示 从无限远的地方向单一方向发射的光。
         viewer.scene.light = new Cesium.DirectionalLight({
           direction: new Cesium.Cartesian3(0.354925, -0.890918, -0.283358),
-        });  
+        });
       }
-      
 
       // cesium实例加载完成，添加底部经纬度检测
       this.footerViewer = this.findComponentDownward(this, "info");
@@ -108,7 +125,6 @@ export default {
         },
         duration: 1.5,
       });
-
 
       // 鼠标左键单击
       viewer.screenSpaceEventHandler.setInputAction((e) => {
@@ -126,11 +142,24 @@ export default {
       viewer.scene.globe.enableLighting = false; //关闭光照
       viewer.shadows = false; //关闭阴影
 
-      this.entitysLoad()  //加载所有entitys
-      this.modelsLoad()  //加载所有模型
+      this.entitysLoad(); //加载所有entitys
+      this.modelsLoad(); //加载所有模型
 
-      this.patrolExample()  // 巡逻示例
+      this.patrolExample(); // 巡逻示例
 
+      //每帧渲染结束监听
+      viewer.scene.postRender.addEventListener((e) =>{
+        if (this.initialPosition != this.movePosition) {
+          this.movePosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian);
+          var popw = document.getElementById("dialog").offsetWidth;
+          var poph = document.getElementById("dialog").offsetHeight;
+
+          var trackPopUpContent_ = document.getElementById("dialog");
+          //trackPopUpContent_.style.visibility = "visible";
+          trackPopUpContent_.style.left = this.movePosition.x - (popw + 50) + "px";
+          trackPopUpContent_.style.top = this.movePosition.y - (poph + 50) + "px";
+        }
+      });
     },
   },
 };
@@ -159,5 +188,14 @@ export default {
   z-index: 11;
   top: 0;
   transform: rotate3d(2, -1, -1, -0.2turn);
+}
+
+#dialog {
+  top: 0;
+  left: 82%;
+  display: block;
+  width: 400px;
+  position: absolute;
+  background: #fff;
 }
 </style>

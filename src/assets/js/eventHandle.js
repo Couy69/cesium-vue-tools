@@ -19,6 +19,29 @@ export const eventHandle = {
         `,
         });
 
+        var scene = viewer.scene,
+          camera = viewer.camera
+        this.dialogshow = true
+        var position = scene.pickPosition(e.position); //单击位置
+        var positionObj = scene.pick(e.position); //选中的对象
+
+        this.cartesian = scene.globe.pick(camera.getPickRay(e.position), scene);
+        var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
+        this.initialPosition = {
+          x: picks.x,
+          y: picks.y
+        }
+        console.log(this.initialPosition)
+
+        var bubble = document.getElementById("dialog");
+        //设置弹出框位置
+        bubble.style.left = e.position.x - 70 + "px";
+        var divheight = bubble.offsetHeight;
+        var divy = e.position.y - divheight - 50; //50px为.bubble:after--20x50
+        bubble.style.top = divy + "px";
+        bubble.style.visibility = "visible"; //visibility: "hidden" 
+
+
         var pickedFeature = null;
         pickedFeature = viewer.scene.pick(e.position);
 

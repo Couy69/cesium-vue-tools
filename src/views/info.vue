@@ -5,6 +5,9 @@
       <div id="cameraHeight"><span>视距：</span>{{ cameraHeight || 0 }}m</div>
       <div id="lonLatHeight"><span>经度：</span>{{ lonLatAlt[0] || 0 }}°</div>
       <div id="cameraHeight"><span>纬度：</span>{{ lonLatAlt[1] || 0 }}°</div>
+      <div id="cameraHeight"><span>方向角 heading：</span>{{ heading || 0 }}°</div>
+      <div id="cameraHeight"><span>俯仰角 pitch：</span>{{ pitch || 0 }}°</div>
+      <div id="cameraHeight"><span>翻转角 roll：</span>{{ roll || 0 }}°</div>
     </div>
     <div class="sysInfo">
       <div id="sysInfo">
@@ -26,21 +29,15 @@ import HelperUtils from "../assets/js/utils";
 import * as Cesium from "cesium/Cesium";
 export default {
   name: "info",
-  props: {
-    cesiumViewer: {},
-    polylineNode: {
-      default: false,
-    },
-    polygonNode: {
-      default: true,
-    },
-  },
   data() {
     return {
       sysInfo: {},
       level: 0, // 地图层级
       cameraHeight: 0, // 相机高度
       lonLatAlt: 0, // 经纬高度
+      heading:0,
+      pitch:0,
+      roll:0,
     };
   },
   methods: {
@@ -67,6 +64,11 @@ export default {
           this.lonLatAlt = [];
         }
 
+        this.heading = Cesium.Math.toDegrees(viewer.scene.camera.heading).toFixed(2);
+        this.pitch = Cesium.Math.toDegrees(viewer.scene.camera.pitch).toFixed(2);
+        this.roll =Cesium.Math.toDegrees(viewer.scene.camera.roll).toFixed(2);
+
+        // 拖动小圆点时
         if (window.tabDot) {
           this.$store.commit("set_sys_info", {
             type: "info",
@@ -165,8 +167,8 @@ export default {
 <style lang="scss" scoped>
 #footer {
   position: fixed;
-  bottom: 0;
-  left: 450px;
+  bottom: 35px;
+  left: 430px;
   width: auto;
   height: 20px;
   padding: 10px 20px;
@@ -176,6 +178,7 @@ export default {
   justify-content: center;
   * {
     color: #fff;
+    font-size: 13px;
   }
   & > div {
     margin: 0 10px;
@@ -186,7 +189,7 @@ export default {
   border-top-right-radius: 10px;
   box-shadow: 0 0 10px 1px rgba($color: #000000, $alpha: 0.5);
   position: fixed;
-  bottom: 0;
+  bottom: 28px;
   left: 0;
   width: 450px;
   height: 500px;
