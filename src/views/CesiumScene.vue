@@ -12,100 +12,22 @@ import * as Cesium from "cesium/Cesium";
 import info from "./info.vue";
 import handle from "./handle.vue";
 import { assist } from "@/assets/js/assist";
+import { eventHandle } from "@/assets/js/eventHandle";
+import { entityLoad } from "@/assets/js/entityLoad";
+import { modelLoad } from "@/assets/js/modelLoad";
+import { patrolExample } from "@/assets/js/patrolExample";
 export default {
   name: "CesiumScene",
   data() {
     return {};
   },
-  mixins: [assist],
+  mixins: [assist,eventHandle,modelLoad,entityLoad,patrolExample],
   mounted() {
     this.init();
   },
   components: { info, handle },
   beforeDestroy() {},
   methods: {
-    leftClick(e) {
-      try {
-        // 获取经纬度信息
-        this.footerViewer = this.findComponentDownward(this, "info");
-        var lonLatAlt = this.footerViewer.lonLatAlt;
-
-        this.$store.commit("set_sys_info", {
-          type: "info",
-          msg: `
-          当前点击位置经纬度为：${this.footerViewer.lonLatAlt[0]},${this.footerViewer.lonLatAlt[1]}
-        `,
-        });
-
-        var pickedFeature = null;
-        pickedFeature = viewer.scene.pick(e.position);
-        if (!pickedFeature) {
-          return;
-        }
-        console.log(pickedFeature.primitive);
-        console.log(pickedFeature.primitive.constructor.name);
-        if (pickedFeature.primitive.constructor.name == "Model") {
-          console.log("当前点击为Model", pickedFeature.primitive);
-          this.$store.commit("set_sys_info", {
-            type: "info",
-            msg: `
-              当前鼠标点击对象为Model,id : ${pickedFeature.primitive.id}
-            `,
-          });
-        } else if (pickedFeature.primitive.constructor.name == "Primitive") {
-          console.log("当前点击为Primitive", pickedFeature.primitive._instanceIds);
-          this.$store.commit("set_sys_info", {
-            type: "info",
-            msg: `
-              当前鼠标点击对象为Entity,id : ${pickedFeature.primitive._instanceIds[0].id}
-            `,
-          });
-        } else if(pickedFeature.primitive.constructor.name == "Billboard") {
-          this.$store.commit("set_sys_info", {
-            type: "info",
-            msg: `
-              当前鼠标点击对象为Billboard,id : ${pickedFeature.primitive._id.id}
-            `,
-          });
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    leftDown(e){
-      try {
-
-        var pickedFeature = null;
-        pickedFeature = viewer.scene.pick(e.position);
-        if (!pickedFeature) {
-          return;
-        }
-        if(pickedFeature.primitive.constructor.name == "Billboard") {
-          console.log(pickedFeature.primitive._id);
-          // 判断是否为可以拖动的点
-          if(pickedFeature.primitive._id.isTabDot){
-            viewer.scene.screenSpaceCameraController.enableTranslate = false;
-            viewer.scene.screenSpaceCameraController.enableZoom = false;
-            viewer.scene.screenSpaceCameraController.enableTilt = false;
-            viewer.scene.screenSpaceCameraController.enableRotate = false;
-            
-            window.tabDot = pickedFeature.primitive._id  
-          }
-          
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    leftUp(e){
-      if(window.tabDot){
-        window.tabDot = null
-        viewer.scene.screenSpaceCameraController.enableTranslate = true;
-          viewer.scene.screenSpaceCameraController.enableZoom = true;
-          viewer.scene.screenSpaceCameraController.enableTilt = true;
-          viewer.scene.screenSpaceCameraController.enableRotate = true;
-      }
-    },
     init() {
       // 初始化CISIUM实列
       this.viewerDefaultProperty = {
@@ -119,6 +41,7 @@ export default {
         fullscreenElement: "cesiumContainer",
         fullscreenButton: false,
         shouldAnimate: true,
+        timeline: true,
         // shouldAnimate: false,
         // clockViewModel: new Cesium.ClockViewModel(clockT),
         infoBox: false,
@@ -136,7 +59,6 @@ export default {
             }
           : {},
         //地图图层
-
         //线上地图
         imageryProvider: new Cesium.ArcGisMapServerImageryProvider({
           url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
@@ -162,6 +84,16 @@ export default {
 
       viewer._cesiumWidget._creditContainer.style.display = "none"; // 隐藏版权
 
+      viewer.enableLighting = true;
+      
+      if(_Gconfig.needDirectionalLight){
+        // DirectionalLight 表示 从无限远的地方向单一方向发射的光。
+        viewer.scene.light = new Cesium.DirectionalLight({
+          direction: new Cesium.Cartesian3(0.354925, -0.890918, -0.283358),
+        });  
+      }
+      
+
       // cesium实例加载完成，添加底部经纬度检测
       this.footerViewer = this.findComponentDownward(this, "info");
       this.footerViewer.OnInit();
@@ -176,7 +108,8 @@ export default {
         },
         duration: 1.5,
       });
-      
+
+
       // 鼠标左键单击
       viewer.screenSpaceEventHandler.setInputAction((e) => {
         this.leftClick(e);
@@ -193,167 +126,11 @@ export default {
       viewer.scene.globe.enableLighting = false; //关闭光照
       viewer.shadows = false; //关闭阴影
 
-      // 模型加载
-      var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(112.876542, 28.237326, 2.0));
-      //gltf数据加载位置
-      var model = viewer.scene.primitives.add(
-        Cesium.Model.fromGltf({
-          id: "test_cube1",
-          url: "./gltf/cube.gltf", //如果为bgltf则为.bgltf
-          modelMatrix: modelMatrix,
-          scale: 2.0, //放大倍数
-        })
-      );
+      this.entitysLoad()  //加载所有entitys
+      this.modelsLoad()  //加载所有模型
 
-      viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(112.872422, 28.241525, 35),
-        label: {
-          text: "地图标记相关：",
-          font: "16pt Source Han Sans CN", //字体样式
-          fillColor: Cesium.Color.WHITE, //字体颜色
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE, //label样式
-          outlineWidth: 4.5,
-          verticalOrigin: Cesium.VerticalOrigin.TOP,
-          pixelOffset: new Cesium.Cartesian2(0, 0),
-        },
-      });
+      this.patrolExample()  // 巡逻示例
 
-      viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(112.87235, 28.240632, 60),
-        scale: false,
-        billboard: {
-          image: "./img/mark-warning.png",
-          width: 50,
-          height: 50,
-        },
-        label: {
-          text: "warning",
-          font: "16pt Source Han Sans CN", //字体样式
-          fillColor: Cesium.Color.WHITE, //字体颜色
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE, //label样式
-          outlineWidth: 4.5,
-          verticalOrigin: Cesium.VerticalOrigin.TOP,
-          pixelOffset: new Cesium.Cartesian2(5, -50),
-        },
-      });
-
-      // 动态立体墙
-      var positions = [
-        112.873067,
-        28.240122,
-        2,
-        112.875045,
-        28.240116,
-        2,
-        112.87507,
-        28.241169,
-        2,
-        112.873067,
-        28.241157,
-        2,
-        112.873067,
-        28.240122,
-        2,
-      ];
-      var p = new Cesium.Cartesian3.fromDegreesArrayHeights(positions);
-      var minimumHeights = new Array(positions.length).fill(42.0);
-      var num = 0,
-        alp = 1;
-      viewer.entities.add({
-        name: "动态立体墙",
-        wall: {
-          show: true,
-          positions: p,
-          minimumHeights: minimumHeights, //设置地面高度
-          material: new Cesium.ImageMaterialProperty({
-            image: "./img/jianbianwall.png",
-            transparent: true,
-            color: new Cesium.CallbackProperty(function() {
-              if (num % 2 === 0) {
-                alp -= 0.005;
-              } else {
-                alp += 0.005;
-              }
-              if (alp <= 0.7) {
-                num++;
-              } else if (alp >= 1) {
-                num++;
-              }
-              return Cesium.Color.WHITE.withAlpha(alp);
-              //entity的颜色透明 并不影响材质，并且 entity也会透明
-            }, false),
-          }),
-        },
-      });
-
-      viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(112.872439, 28.234732, 35),
-        // },
-        label: {
-          text: "视频作为贴图：",
-          font: "16pt Source Han Sans CN", //字体样式
-          fillColor: Cesium.Color.WHITE, //字体颜色
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE, //label样式
-          outlineWidth: 4.5,
-          verticalOrigin: Cesium.VerticalOrigin.TOP,
-          pixelOffset: new Cesium.Cartesian2(0, 0),
-        },
-      });
-
-      // 视频贴图entity
-      var videoElement = document.createElement("video");
-      videoElement.src = "./1.mp4";
-      videoElement.loop = true;
-      videoElement.muted = true;
-      videoElement.className = "tempVideo";
-      videoElement.style.opacity = 0.1;
-      videoElement.play();
-      console.log(videoElement);
-      var cyanPolygon = viewer.entities.add({
-        name: "Cyan vertical polygon with per-position heights and outline",
-        id: "test_entity",
-        name: "cameraEntity",
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights([
-            112.871437,
-            28.234432,
-            5,
-            112.871442,
-            28.232811,
-            5,
-            112.874246,
-            28.232824,
-            5,
-            112.874237,
-            28.234428,
-            5,
-          ]),
-          perPositionHeight: true,
-          alpha: 0.2,
-          material: videoElement,
-          // material: new Cesium.ImageMaterialProperty({
-          //   image: videoElement,
-          //   transparent: true,
-          //   alpha: 0.2,
-          // }),
-          stRotation: Cesium.Math.toRadians(0),
-        },
-      });
-      viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(112.874237, 28.234428, 5.1),
-        id:'Billboard3',
-        isTabDot:true,
-        tabIndex:3,
-        parentEntityId: "test_entity",
-        scale: false,
-        billboard: {
-          image: "./img/dot.png",
-          width: 30,
-          height: 30,
-        },
-      });
-
-      // 112.876542,28.237326
     },
   },
 };

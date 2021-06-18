@@ -74,6 +74,7 @@ export default {
             当前点击位置经纬度为：${this.lonLatAlt[0]},${this.lonLatAlt[1]}
           `,
           });
+          // TODO:需要加个防抖，避免重绘，同时需要可以设置高度
           this.dotMove();
           this.entityMovePositonByDot(window.tabDot.parentEntityId, window.tabDot.tabIndex);
         }
