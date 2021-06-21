@@ -17,10 +17,20 @@ export const eventHandle = {
       var scene = viewer.scene,
         camera = viewer.camera
       this.dialogshow = true
-      var position = scene.pickPosition(e.position); //单击位置
-      var positionObj = scene.pick(e.position); //选中的对象
-      this.cartesian = scene.globe.pick(camera.getPickRay(e.position), scene);
+
+      // var position = scene.pickPosition(e.position); //单击位置
+      // var positionObj = scene.pick(e.position); //选中的对象
+      // this.cartesian = scene.globe.pick(camera.getPickRay(e.position), scene);
+      // var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
+      
+      var pick = viewer.scene.pickPosition(e.position);
+      var height = Cesium.Cartographic.fromCartesian(pick).height;
+      var lat = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).latitude);
+      var lng = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).longitude);
+      this.cartesian = Cesium.Cartesian3.fromDegrees(lng, lat, height)
       var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
+      console.log(`Cesium.Cartesian3.fromDegrees(${lng}, ${lat}, ${height}),`);
+
       this.initialPosition = {
         x: picks.x,
         y: picks.y

@@ -156,15 +156,21 @@ export default {
 
       //每帧渲染结束监听
       viewer.scene.postRender.addEventListener((e) => {
-        if (this.initialPosition != this.movePosition) {
-          this.movePosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian);
-          var popw = document.getElementById("dialog").offsetWidth; //弹窗宽度
-          var poph = document.getElementById("dialog").offsetHeight; //弹窗高度
-          var trackPopUpContent_ = document.getElementById("dialog");
-          //trackPopUpContent_.style.visibility = "visible";
-          trackPopUpContent_.style.left = this.movePosition.x - popw / 2 + "px";
-          trackPopUpContent_.style.top = this.movePosition.y - (poph + 10) + "px";
+        try {
+          if (this.initialPosition != this.movePosition) {
+            this.movePosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian);
+            var popw = document.getElementById("dialog").offsetWidth; //弹窗宽度
+            var poph = document.getElementById("dialog").offsetHeight; //弹窗高度
+            var trackPopUpContent_ = document.getElementById("dialog");
+            //trackPopUpContent_.style.visibility = "visible";
+            trackPopUpContent_.style.left = this.movePosition.x - popw / 2 + "px";
+            trackPopUpContent_.style.top = this.movePosition.y - (poph + 10) + "px";
+          }  
+        } catch (error) {
+          console.log(this.movePosition)
+          console.log(error)
         }
+        
       });
     },
   },
@@ -204,11 +210,12 @@ export default {
   position: absolute;
   background: rgba(0, 0, 0, 0.8);
   border-radius: 6px;
+  z-index: 999;
   .dialog-content {
     overflow-y: auto;
     padding: 10px;
     p{
-      font-size: 14px;
+      font-size: 13px;
       width: 100%;
       .label{
         display: inline-block;
@@ -220,12 +227,16 @@ export default {
     padding: 6px;
     height: 32px;
     display: flex;
-    font-size: 14px;
+    font-size: 16px;
     align-items: center;
     justify-content: space-between;
+    .dialog-title-info{
+      font-size: 14px;
+    }
   }
   #close {
     font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
     margin-top: -8px;
     color: #fff;
