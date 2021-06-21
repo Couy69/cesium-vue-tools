@@ -6,6 +6,33 @@ import * as Cesium from "cesium/Cesium";
 
 export const eventHandle = {
   methods: {
+    setDialogInfo(e,type,id,uniqueInfo) {
+      // 设置点击弹出框相关代码
+      // start
+      this.clickObjInfo = {
+        type:type,
+        id:id,
+        uniqueInfo:uniqueInfo
+      }
+      var scene = viewer.scene,
+        camera = viewer.camera
+      this.dialogshow = true
+      var position = scene.pickPosition(e.position); //单击位置
+      var positionObj = scene.pick(e.position); //选中的对象
+      this.cartesian = scene.globe.pick(camera.getPickRay(e.position), scene);
+      var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
+      this.initialPosition = {
+        x: picks.x,
+        y: picks.y
+      }
+      var bubble = document.getElementById("dialog");
+      //设置弹出框位置
+      bubble.style.left = e.position.x - 140 + "px";
+      var divheight = bubble.offsetHeight;
+      var divy = e.position.y - divheight - 50;
+      bubble.style.top = divy + "px";
+      // end
+    },
     leftClick(e) {
       try {
         // 获取经纬度信息
@@ -19,44 +46,8 @@ export const eventHandle = {
         `,
         });
 
-        var scene = viewer.scene,
-          camera = viewer.camera
-        this.dialogshow = true
-        var position = scene.pickPosition(e.position); //单击位置
-        var positionObj = scene.pick(e.position); //选中的对象
-
-        this.cartesian = scene.globe.pick(camera.getPickRay(e.position), scene);
-        var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
-        this.initialPosition = {
-          x: picks.x,
-          y: picks.y
-        }
-        console.log(this.initialPosition)
-
-        var bubble = document.getElementById("dialog");
-        //设置弹出框位置
-        bubble.style.left = e.position.x - 70 + "px";
-        var divheight = bubble.offsetHeight;
-        var divy = e.position.y - divheight - 50; //50px为.bubble:after--20x50
-        bubble.style.top = divy + "px";
-        bubble.style.visibility = "visible"; //visibility: "hidden" 
-
-
         var pickedFeature = null;
         pickedFeature = viewer.scene.pick(e.position);
-
-        var pick = viewer.scene.pickPosition(e.position);
-        var pickModel = viewer.scene.pick(e.position);
-        if (pickModel && pick && pickModel.id) {
-          var height = Cesium.Cartographic.fromCartesian(pick).height;
-          var lat = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).latitude);
-          var lng = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).longitude);
-          // console.log(lng, lat, height)
-          console.log(`Cesium.Cartesian3.fromDegrees(${lng}, ${lat}, ${height}),`);
-          return;
-          // let cartesian = Cesium.Cartesian3.fromDegrees(lng, lat, height);
-          // console.log("模型高度点", cartesian);
-        }
 
         if (!pickedFeature) {
           return;
@@ -69,6 +60,22 @@ export const eventHandle = {
               当前鼠标点击对象为Model,id : ${pickedFeature.primitive.id}
             `,
           });
+          this.setDialogInfo(e,'Model',pickedFeature.primitive.id)
+
+          var pick = viewer.scene.pickPosition(e.position);
+          var pickModel = viewer.scene.pick(e.position);
+          if (pickModel && pick && pickModel.id) {
+            var height = Cesium.Cartographic.fromCartesian(pick).height;
+            var lat = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).latitude);
+            var lng = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).longitude);
+            console.log(lng, lat, height)
+            // console.log(`Cesium.Cartesian3.fromDegrees(${lng}, ${lat}, ${height}),`);
+            return;
+            // let cartesian = Cesium.Cartesian3.fromDegrees(lng, lat, height);
+            // console.log("模型高度点", cartesian);
+          }
+
+          
         } else if (pickedFeature.primitive.constructor.name == "Primitive") {
           console.log("当前点击为Primitive", pickedFeature.primitive._instanceIds);
           this.$store.commit("set_sys_info", {
@@ -77,6 +84,7 @@ export const eventHandle = {
               当前鼠标点击对象为Entity,id : ${pickedFeature.primitive._instanceIds[0].id}
             `,
           });
+          this.setDialogInfo(e,"Primitive",pickedFeature.primitive._instanceIds[0].id)
         } else if (pickedFeature.primitive.constructor.name == "Billboard") {
           this.$store.commit("set_sys_info", {
             type: "info",
@@ -84,6 +92,7 @@ export const eventHandle = {
               当前鼠标点击对象为Billboard,id : ${pickedFeature.primitive._id.id}
             `,
           });
+          this.setDialogInfo(e,"Billboard",pickedFeature.primitive._id.id)
         }
       } catch (error) {
         console.log(error);

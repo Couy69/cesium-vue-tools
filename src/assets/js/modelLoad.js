@@ -7,7 +7,6 @@ import * as Cesium from "cesium/Cesium";
 export const modelLoad = {
   methods: {
     modelsLoad(){
-      console.log(_Gconfig.modelBasedLightingFactor)
       // 模型加载
       var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(112.876542, 28.237326, 2.0));
       //gltf数据加载位置

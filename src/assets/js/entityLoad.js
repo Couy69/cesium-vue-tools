@@ -110,7 +110,6 @@ export const entityLoad = {
       videoElement.className = "tempVideo";
       videoElement.style.opacity = 0.1;
       videoElement.play();
-      console.log(videoElement);
       var cyanPolygon = viewer.entities.add({
         name: "Cyan vertical polygon with per-position heights and outline",
         id: "test_entity",

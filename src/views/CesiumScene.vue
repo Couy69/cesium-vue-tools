@@ -5,16 +5,22 @@
     <div id="cesiumContainer"></div>
     <div id="dialog" class="bubble" v-show="dialogshow">
       <!--class="bubble"-->
-      <div id="tools" style="text-align : right">
-        <span style="color: rgb(95, 74, 121);padding: 5px;position: absolute;left: 10px;top: 4px;">对象属性</span>
-        <span class="fui-export" id="bubblePosition" style="color: darkgrey; padding:5px" title="停靠"></span>
-        <span class="fui-cross" title="关闭" id="close" style="color: darkgrey;padding:5px"></span>
+      <div class="dialog-title" id="tools" style="text-align : right">
+        <span class="dialog-title-info">对象属性</span>
+        <span class="fui-cross" title="关闭" id="close" @click="dialogshow = false">x</span>
       </div>
-      <div style="overflow-y:scroll;height:190px" id="tableContainer">
-        <table id="tab">
-          test
-        </table>
+      <div class="dialog-content" style="" id="tableContainer">
+        <p>
+          <span class="label">对象类型</span>
+          <span class="text">{{clickObjInfo.type}}</span>
+        </p>
+        <p>
+          <span class="label">id</span>
+          <span class="text">{{clickObjInfo.id}}</span>
+        </p>
       </div>
+      <div class="ggwc-arror1"></div>
+      <div class="ggwc-arror2"></div>
     </div>
   </div>
 </template>
@@ -36,7 +42,8 @@ export default {
       dialogshow: false,
       initialPosition: {},
       movePosition: {},
-      cartesian:{},
+      cartesian: {},
+      clickObjInfo:{}
     };
   },
   mixins: [assist, eventHandle, modelLoad, entityLoad, patrolExample],
@@ -148,16 +155,15 @@ export default {
       this.patrolExample(); // 巡逻示例
 
       //每帧渲染结束监听
-      viewer.scene.postRender.addEventListener((e) =>{
+      viewer.scene.postRender.addEventListener((e) => {
         if (this.initialPosition != this.movePosition) {
           this.movePosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian);
-          var popw = document.getElementById("dialog").offsetWidth;
-          var poph = document.getElementById("dialog").offsetHeight;
-
+          var popw = document.getElementById("dialog").offsetWidth; //弹窗宽度
+          var poph = document.getElementById("dialog").offsetHeight; //弹窗高度
           var trackPopUpContent_ = document.getElementById("dialog");
           //trackPopUpContent_.style.visibility = "visible";
-          trackPopUpContent_.style.left = this.movePosition.x - (popw + 50) + "px";
-          trackPopUpContent_.style.top = this.movePosition.y - (poph + 50) + "px";
+          trackPopUpContent_.style.left = this.movePosition.x - popw / 2 + "px";
+          trackPopUpContent_.style.top = this.movePosition.y - (poph + 10) + "px";
         }
       });
     },
@@ -194,8 +200,58 @@ export default {
   top: 0;
   left: 82%;
   display: block;
-  width: 400px;
+  width: 280px;
   position: absolute;
-  background: #fff;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  .dialog-content {
+    overflow-y: auto;
+    padding: 10px;
+    p{
+      font-size: 14px;
+      width: 100%;
+      .label{
+        display: inline-block;
+        width: 80px;
+      }
+    }
+  }
+  .dialog-title {
+    padding: 6px;
+    height: 32px;
+    display: flex;
+    font-size: 14px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #close {
+    font-size: 20px;
+    cursor: pointer;
+    margin-top: -8px;
+    color: #fff;
+    margin-right: 5px;
+  }
+  .dialog-title-info {
+    padding: 0 5px 4px;
+    margin-top: 4px;
+    border-bottom: 1px solid #41a1da;
+  }
+  .ggwc-arror1,
+  .ggwc-arror2 {
+    position: absolute;
+    left: 132px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    height: 0;
+    width: 0;transform: rotate(180deg);
+  }
+  .ggwc-arror1 {
+    bottom: -8px;
+    border-bottom: 8px solid transparent;
+  }
+  .ggwc-arror2 {
+    bottom: -6px;
+    border-bottom: 8px solid rgba(0, 0, 0, 0.8);
+  }
 }
 </style>
