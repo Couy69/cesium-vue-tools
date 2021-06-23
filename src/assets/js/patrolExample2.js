@@ -5,8 +5,9 @@
 import * as Cesium from "cesium/Cesium";
 
 export const patrolExample2 = {
-  data(){
+  data() {
     return {
+      moveRate: 2,
       xlLineStep: 0,
       xlLine: [
         [112.886434, 28.237180, 4.5],
@@ -19,7 +20,38 @@ export const patrolExample2 = {
     }
   },
   methods: {
-    patrolExample2(){
+    patrolPoint(index) {
+      this.cameraMoveForward = false;
+      
+      var a = this.xlLine[index],
+        b = this.xlLine[index + 1];
+      var deg = this.courseAngle(b[0], b[1], a[0], a[1]),
+        pitch = 0
+
+      if (a[2] != b[2]) {
+        pitch = this.coursePitchAngle(b[0], b[1], b[2], a[0], a[1], a[2])
+      }
+      viewer.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(a[0], a[1], a[2] + 1.5),
+        orientation: {
+          heading: Cesium.Math.toRadians(deg),
+          pitch: Cesium.Math.toRadians(pitch || 0),
+          roll: 0
+
+        },
+        easingFunction: Cesium.EasingFunction.SINUSOIDAL_IN_OUT,
+        duration: 0.9
+      });
+
+      setTimeout(()=>{
+        this.xlLineStep = index
+        this.cameraMoveForward = true
+      },1000)
+    },
+    patrolPause(){
+      this.cameraMoveForward = false;
+    },
+    patrolExample2() {
       var modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(112.886735, 28.237171, 2.0));
       //gltf数据加载位置
       var model = viewer.scene.primitives.add(
@@ -53,7 +85,7 @@ export const patrolExample2 = {
           }),
         },
       });
-      setTimeout(()=>{
+      setTimeout(() => {
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(112.886434, 28.237180, 4.5),
           orientation: {
@@ -63,10 +95,10 @@ export const patrolExample2 = {
           },
           duration: 1,
         });
-      },3500)
-      setTimeout(()=>{
+      }, 3500)
+      setTimeout(() => {
         this.cameraMoveForward = true
-      },5000)
+      }, 5000)
       var ellipsoid = viewer.scene.globe.ellipsoid;
       viewer.clock.onTick.addEventListener(clock => {
         var camera = viewer.camera;
@@ -97,15 +129,16 @@ export const patrolExample2 = {
         // Change movement speed based on the distance of the camera to the surface of the ellipsoid.
         var cameraHeight = ellipsoid.cartesianToCartographic(camera.position)
           .height;
+
         // console.log(this.Cartesian3ToPosition(camera.position.x,camera.position.y,camera.position.z))
         var p = this.Cartesian3ToPosition(camera.position.x, camera.position.y, camera.position.z)
 
         // var moveRate = cameraHeight / 100.0;
-        var moveRate = 0.2;
         // console.log(moveRate)
         if (this.cameraMoveForward) {
-          var a = this.xlLine[this.xlLineStep], b = this.xlLine[this.xlLineStep + 1];
-          camera.moveForward(0.2);
+          var a = this.xlLine[this.xlLineStep],
+            b = this.xlLine[this.xlLineStep + 1];
+          camera.moveForward(this.moveRate / 10);
           var dis = this.positionGetDistance(p[1], p[0], p[2], b[0], b[1], b[2])
           // 距离转向点2时 转向
           if (dis > 5) {
@@ -116,8 +149,10 @@ export const patrolExample2 = {
               return
             }
             this.xlLineStep++;
-            var a = this.xlLine[this.xlLineStep], b = this.xlLine[this.xlLineStep + 1];
-            var deg = this.courseAngle(b[0], b[1], a[0], a[1]), pitch = 0
+            var a = this.xlLine[this.xlLineStep],
+              b = this.xlLine[this.xlLineStep + 1];
+            var deg = this.courseAngle(b[0], b[1], a[0], a[1]),
+              pitch = 0
 
             if (a[2] != b[2]) {
               pitch = this.coursePitchAngle(b[0], b[1], b[2], a[0], a[1], a[2])
@@ -131,7 +166,7 @@ export const patrolExample2 = {
                 roll: 0
 
               },
-              easingFunction:Cesium.EasingFunction.SINUSOIDAL_IN_OUT,
+              easingFunction: Cesium.EasingFunction.SINUSOIDAL_IN_OUT,
               duration: 0.9
             });
           }
