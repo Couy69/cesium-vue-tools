@@ -17,19 +17,20 @@ export const eventHandle = {
       var scene = viewer.scene,
         camera = viewer.camera
       this.dialogshow = true
-
+      
+      // 此方式记录的点位没有高度信息，如果点击的位置实际高度不是0的话或有偏差
       // var position = scene.pickPosition(e.position); //单击位置
       // var positionObj = scene.pick(e.position); //选中的对象
       // this.cartesian = scene.globe.pick(camera.getPickRay(e.position), scene);
       // var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
       
+      // 此方式保留了高度信息，这里仅仅是实现了，应该还有更简单的方式，如果有的话可以提醒一下
       var pick = viewer.scene.pickPosition(e.position);
       var height = Cesium.Cartographic.fromCartesian(pick).height;
       var lat = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).latitude);
       var lng = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).longitude);
       this.cartesian = Cesium.Cartesian3.fromDegrees(lng, lat, height)
       var picks = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, this.cartesian);
-      console.log(`Cesium.Cartesian3.fromDegrees(${lng}, ${lat}, ${height}),`);
 
       this.initialPosition = {
         x: picks.x,
@@ -78,8 +79,8 @@ export const eventHandle = {
             var height = Cesium.Cartographic.fromCartesian(pick).height;
             var lat = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).latitude);
             var lng = Cesium.Math.toDegrees(Cesium.Cartographic.fromCartesian(pick).longitude);
-            console.log(lng, lat, height)
-            // console.log(`Cesium.Cartesian3.fromDegrees(${lng}, ${lat}, ${height}),`);
+            // console.log(lng, lat, height)
+            console.log(`Cesium.Cartesian3.fromDegrees(${lng}, ${lat}, ${height}),`);
             return;
             // let cartesian = Cesium.Cartesian3.fromDegrees(lng, lat, height);
             // console.log("模型高度点", cartesian);

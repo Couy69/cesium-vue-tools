@@ -177,9 +177,9 @@ export const patrolExample = {
       // viewer.scene.preRender.addEventListener(renderListener);
 
       // 开始巡逻
-      // setTimeout(() => {
-      //   trackView()
-      // }, 1000);
+      setTimeout(() => {
+        trackView()
+      }, 1000);
     }
   }
 };

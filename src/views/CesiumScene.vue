@@ -35,6 +35,8 @@ import { eventHandle } from "@/assets/js/eventHandle";
 import { entityLoad } from "@/assets/js/entityLoad";
 import { modelLoad } from "@/assets/js/modelLoad";
 import { patrolExample } from "@/assets/js/patrolExample";
+import { patrolExample2 } from "@/assets/js/patrolExample2";
+import cesiumCoordinate from "@/assets/js/cesium-coordinate";
 export default {
   name: "CesiumScene",
   data() {
@@ -43,10 +45,12 @@ export default {
       initialPosition: {},
       movePosition: {},
       cartesian: {},
-      clickObjInfo:{}
+      clickObjInfo:{},
+
+      cameraMoveForward:false,
     };
   },
-  mixins: [assist, eventHandle, modelLoad, entityLoad, patrolExample],
+  mixins: [assist, eventHandle, modelLoad, entityLoad, patrolExample,patrolExample2,cesiumCoordinate],
   mounted() {
     this.init();
   },
@@ -152,10 +156,13 @@ export default {
       this.entitysLoad(); //加载所有entitys
       this.modelsLoad(); //加载所有模型
 
-      this.patrolExample(); // 巡逻示例
+      // this.patrolExample(); // 巡逻示例
+      this.patrolExample2(); // 巡逻示例
 
       //每帧渲染结束监听
       viewer.scene.postRender.addEventListener((e) => {
+
+        // 弹出层提示框跟随移动
         try {
           if (this.initialPosition != this.movePosition) {
             this.movePosition = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian);
